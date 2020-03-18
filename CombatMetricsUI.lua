@@ -30,7 +30,7 @@ end
 local LC = LibCombat
 if LC == nil then return end
 
-local LibFeedback = LibStub:GetLibrary('LibFeedback')
+local LF = LibFeedback
 
 local GetFormattedAbilityName = LC.GetFormattedAbilityName
 
@@ -6099,7 +6099,7 @@ function CMX.InitializeUI()
 
 	local data = CMX.GetFeedBackData(settingsbutton)
 
-	local button, feedbackWindow = LibFeedback:initializeFeedbackWindow(unpack(data))
+	local button, feedbackWindow = LF:initializeFeedbackWindow(unpack(data))
 	button:SetHidden(true)
 
 	function ToggleFeedback()
