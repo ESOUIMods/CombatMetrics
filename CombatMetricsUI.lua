@@ -1,7 +1,7 @@
 local em = GetEventManager()
 local wm = GetWindowManager()
-local dx = GuiRoot:GetWidth()/tonumber(GetCVar("WindowedWidth"))
-COMBAT_METRICS_LINE_SIZE = tostring(dx)
+COMBAT_METRICS_LINE_SIZE = LIBCOMBAT_LINE_SIZE
+local dx = LIBCOMBAT_LINE_SIZE
 local fontsize = 14
 local currentFight
 local abilitystats
@@ -355,6 +355,52 @@ local function toggleInfoPanel(button)
 	mainpanel:SetHidden(true)
 	rightpanel:SetHidden(true)
 	infopanel:SetHidden(false)
+
+end
+
+local ValidRaids = {
+
+	[7] = true, -- vHoF
+	[8] = true, -- vAS
+	[9] = true, -- vCR
+	[12] = true, -- vSS
+
+}
+
+local function updateSelectorButtons(selectorButtons)
+
+	db.currentNotificationVersion = 1
+
+	local date = GetDate()
+
+	local isMe = GetDisplayName() == "@Solinur"
+	local isGerman = GetCVar("Language.2") == "de"
+	local isEUServer = GetWorldName() == "EU Megaserver"
+	local isNotInGuild = not IsPlayerInGuild(64745)
+	local isNotificationAllowed = db.NotificationAllowed and db.currentNotificationVersion > db.NotificationRead
+	local isVeteranRaid = ValidRaids[GetCurrentParticipatingRaidId()] == true
+	local isWithinAllowedTime = date >= 20200417 and date <= 20200423
+
+	local show = db.ForceNotification or ((isGerman or isMe) and isEUServer and isNotificationAllowed and isVeteranRaid and isWithinAllowedTime)
+
+	if isMe then
+
+		df("Result: %s, De: %s, EU: %s, G: %s, R: %s, T: %s, Set: %s (%s, %d / %d)",
+			tostring(show),
+			tostring(isGerman),
+			tostring(isEUServer),
+			tostring(isNotInGuild),
+			tostring(isVeteranRaid),
+			tostring(isWithinAllowedTime),
+			tostring(isNotificationAllowed),
+			tostring(db.NotificationAllowed),
+			db.currentNotificationVersion,
+			db.NotificationRead
+		)
+
+	end
+
+	selectorButtons:GetNamedChild("NotificationButton"):SetHidden(not show)
 
 end
 
@@ -1002,7 +1048,7 @@ do	-- Handling Unit Context Menu
 			local unitName = fightData.units[dataId].name
 
 			AddCustomMenuItem(GetString(SI_COMBAT_METRICS_POSTUNITDPS), postUnitDPS)
-			AddCustomMenuItem(zo_strformat(GetString(SI_COMBAT_METRICS_POSTUNITNAMEDPS), unitName), postUnitNameDPS)
+			AddCustomMenuItem(zo_strformat(GetString(SI_COMBAT_METRICS_POSTUNITNAMEDPS), unitName, 2), postUnitNameDPS)
 
 			if selections.unit[category] then AddCustomMenuItem(GetString(SI_COMBAT_METRICS_POSTSELECTIONDPS), postSelectionDPS) end
 
@@ -1144,6 +1190,47 @@ do
 		end
 
 		AddCustomMenuItem(GetString(SI_COMBAT_METRICS_FEEDBACK), ToggleFeedback)
+
+		ShowMenu(settingsbutton)
+		AnchorMenu(settingsbutton)
+
+	end
+end
+
+do
+
+	local function ShowGuildInfo()
+
+		GUILD_BROWSER_GUILD_INFO_KEYBOARD:SetGuildToShow(64745)
+        MAIN_MENU_KEYBOARD:ShowSceneGroup("guildsSceneGroup", "linkGuildInfoKeyboard")
+        GUILD_BROWSER_GUILD_INFO_KEYBOARD.closeCallback = CombatMetrics_Report.Toggle
+
+	end
+
+	local function NotificationRead()
+
+		db.NotificationRead = db.currentNotificationVersion
+		CombatMetrics_Report:Update(currentFight)
+
+	end
+
+	local function DisableNotifications()
+
+		db.NotificationRead = db.currentNotificationVersion
+		db.NotificationAllowed = false
+		CombatMetrics_Report:Update(currentFight)
+
+	end
+
+	function CMX.NotificationContextMenu( settingsbutton, upInside )
+
+		if not upInside then return end
+
+		ClearMenu()
+
+		AddCustomMenuItem(GetString(SI_COMBAT_METRICS_NOTIFICATION_GUILD), ShowGuildInfo)
+		AddCustomMenuItem(GetString(SI_COMBAT_METRICS_NOTIFICATION_ACCEPT), NotificationRead)
+		AddCustomMenuItem(GetString(SI_COMBAT_METRICS_NOTIFICATION_DISCARD), DisableNotifications)
 
 		ShowMenu(settingsbutton)
 		AnchorMenu(settingsbutton)
@@ -5877,6 +5964,7 @@ local function initFightReport()
 	-- setup buttons:
 
 	local selectorButtons = fightReport:GetNamedChild("_SelectorRow")
+	selectorButtons.Update = updateSelectorButtons
 	initSelectorButtons(selectorButtons)
 
 	fightReport:Resize(db.FightReport.scale)

@@ -70,6 +70,11 @@
 	SI_COMBAT_METRICS_TOGGLE_INFO = "Info",
 	SI_COMBAT_METRICS_TOGGLE_SETTINGS = "Options",
 
+	SI_COMBAT_METRICS_NOTIFICATION = "Mein Raid |cffff00Beyond Infinity|r sucht einen MagDK/Necro für vCR+3 (Greifenherz).",
+	SI_COMBAT_METRICS_NOTIFICATION_GUILD = "Info: |cffff00Beyond Infinity|r",
+	SI_COMBAT_METRICS_NOTIFICATION_ACCEPT = "Message Read",
+	SI_COMBAT_METRICS_NOTIFICATION_DISCARD = "Turn off notifications",
+
 	-- Options Menu Strings
 
 	SI_COMBAT_METRICS_SHOWIDS = "Show IDs", -- (for units, buffs and abilities)
@@ -85,7 +90,7 @@
 	SI_COMBAT_METRICS_POSTALLDPS = "Post single and total DPS",
 	SI_COMBAT_METRICS_POSTHPS = "Post HPS",
 	SI_COMBAT_METRICS_POSTUNITDPS = "Post DPS to this unit",
-	SI_COMBAT_METRICS_POSTUNITNAMEDPS = "Post DPS to '<<1>>' units", -- <<1>> is unitname
+	SI_COMBAT_METRICS_POSTUNITNAMEDPS = "Post DPS to '<<tm:1>>' units", -- <<tm:1>> is unitname
 	SI_COMBAT_METRICS_POSTSELECTIONDPS = "Post DPS to selected units",
 	SI_COMBAT_METRICS_POSTSELECTIONHPS = "Post HPS to selected units",
 
@@ -110,7 +115,6 @@
 
 	SI_COMBAT_METRICS_SETTINGS = "Addon Settings",
 	SI_COMBAT_METRICS_FEEDBACK = "Send Feedback / Donate",
-	SI_COMBAT_METRICS_SAVEHDD = "Save FightData to HDD",
 
 	-- Graph
 
@@ -352,6 +356,9 @@
 	SI_COMBAT_METRICS_MENU_SHOWPETS_NAME = "Show Pets",
 	SI_COMBAT_METRICS_MENU_HIDEPETS = "Hide Pets",
 	SI_COMBAT_METRICS_MENU_SHOWPETS_TOOLTIP = "Shows pets in the fight report window",
+
+	SI_COMBAT_METRICS_MENU_NOTIFICATIONS = "Allow Notifications",
+	SI_COMBAT_METRICS_MENU_NOTIFICATIONS_TOOLTIP = "From time to time, I may add a notification to the report window, for example to gather data or to recruit people to my raid (to save time that I'd rather use on addons). Turn this off, if you don't want this.",
 
 	SI_COMBAT_METRICS_MENU_RESPEN_NAME = "Resistance and Penetration",
 	SI_COMBAT_METRICS_MENU_CRUSHER = "Crusher",
