@@ -28,7 +28,7 @@ local CMX = CMX
 
 -- Basic values
 CMX.name = "CombatMetrics"
-CMX.version = "1.0.2"
+CMX.version = "1.0.3"
 
 -- Logger
 
@@ -964,15 +964,15 @@ function CMX.GenerateSelectionStats(fight, menuItem, selections) -- this is simi
 
 				selectedbuff.effectType = buff.effectType
 
-				if data.buffVersion == nil then 
-					
-					selectedbuff.icon = buff.icon 
-				
+				if data.buffVersion == nil then
+
+					selectedbuff.icon = buff.icon
+
 				elseif data.buffVersion >= 2 then
 
 					selectedbuff.iconId = data.buffVersion and (selectedbuff.iconId or buff.iconId) or buff.icon
-				
-				end				
+
+				end
 
 				selectiondata.buffs[name] = selectedbuff
 			end
@@ -2075,7 +2075,7 @@ local function AddToLog(logType, ...)
 
 	table.insert(CMX.currentdata.log,{logType, ...})
 
-	if db.chatLog.enabled then AddtoChatLog(...) end
+	if db.chatLog.enabled then AddtoChatLog(logType, ...) end
 end
 
 local function UnitsCallback(_, units)
