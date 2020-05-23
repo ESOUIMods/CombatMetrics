@@ -497,6 +497,7 @@ local function reduceUnitIds(fight)
 
 	end
 
+
 	if fight.bosses == nil then fight.bosses = {} end
 	local bosses = fight.bosses
 

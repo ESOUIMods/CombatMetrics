@@ -28,7 +28,7 @@ local CMX = CMX
 
 -- Basic values
 CMX.name = "CombatMetrics"
-CMX.version = "1.0.3"
+CMX.version = "1.0.4"
 
 -- Logger
 
@@ -42,7 +42,7 @@ local LOG_LEVEL_ERROR = "E"
 
 if LibDebugLogger then
 
-	mainlogger = LibDebugLogger(CMX.name)
+	mainlogger = LibDebugLogger.Create(CMX.name)
 
 	LOG_LEVEL_VERBOSE = LibDebugLogger.LOG_LEVEL_VERBOSE
 	LOG_LEVEL_DEBUG = LibDebugLogger.LOG_LEVEL_DEBUG
@@ -65,7 +65,7 @@ local function Print(category, level, ...)
 
 	local logger = category and subloggers[category] or mainlogger
 
-	logger:Log(level, ...)
+	if type(logger.Log)=="function" then logger:Log(level, ...) end
 
 end
 
@@ -198,7 +198,7 @@ local PhysResistDebuffs = {
 	[GetFormattedAbilityName(17906)] = 2108, -- Crusher, can get changed by settings !
 	[GetFormattedAbilityName(75753)] = 3010, -- Alkosh
 
-	[GetFormattedAbilityName(100302)] = 6600, -- Piercing Spray
+	--[GetFormattedAbilityName(100302)] = 6600, -- Piercing Spray
 
 	--Corrosive Armor ignores all resistance
 
@@ -1052,8 +1052,8 @@ local function IncrementStatSum(fight, damageType, resultkey, isDamageOut, hitVa
 
 	for statkey, stattype in pairs(statlist) do
 
-		local sumkey = "sum"..statkey
-		local currentkey = "current"..statkey
+		local sumkey = ZO_CachedStrFormat("sum<<1>>", statkey)
+		local currentkey = ZO_CachedStrFormat("current<<1>>", statkey)
 
 		local currentValue = stats[currentkey]
 		local value = hitValue
@@ -1086,7 +1086,7 @@ local function IncrementStatSum(fight, damageType, resultkey, isDamageOut, hitVa
 
 				end
 
-				local effectiveValue = currentValue + unit[resistancekey]
+				local effectiveValue = (currentValue or 0) + unit[resistancekey]
 
 				local data = unit[resistDataKey]
 
