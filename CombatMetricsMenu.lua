@@ -8,7 +8,7 @@ function CMX.MakeMenu(svdefaults)
     -- load the settings->addons menu library
 	local menu = LibAddonMenu2
 	if not LibAddonMenu2 then return end
-	
+
 	local db = CMX.db
 	local def = svdefaults
 
@@ -172,7 +172,7 @@ function CMX.MakeMenu(svdefaults)
 			name = GetString(SI_COMBAT_METRICS_MENU_SF_NAME),
 			tooltip = GetString(SI_COMBAT_METRICS_MENU_SF_TOOLTIP),
 			min = 50,
-			max = 200,
+			max = 300,
 			step = 1,
 			default = def.FightReport.scale,
 			getFunc = function() return db.FightReport.scale*100  end,
@@ -203,8 +203,8 @@ function CMX.MakeMenu(svdefaults)
 			tooltip = GetString(SI_COMBAT_METRICS_MENU_NOTIFICATIONS_TOOLTIP),
 			default = def.NotificationAllowed,
 			getFunc = function() return db.NotificationAllowed end,
-			setFunc = function(value) 
-				db.NotificationAllowed = value 
+			setFunc = function(value)
+				db.NotificationAllowed = value
 				if value == true then db.NotificationRead = 0 end
 			end,
 		},
@@ -267,7 +267,7 @@ function CMX.MakeMenu(svdefaults)
 			default = def.liveReport.locked,
 			getFunc = function() return db.liveReport.locked end,
 			setFunc = function(value)
-				CombatMetrics_LiveReport:SetMovable(not value)
+				CombatMetrics_LiveReport:GetNamedChild("ResizeFrame"):SetMouseEnabled(not value)
 				db.liveReport.locked = value
 			end,
 		},
@@ -288,7 +288,7 @@ function CMX.MakeMenu(svdefaults)
 			type = "slider",
 			name = GetString(SI_COMBAT_METRICS_MENU_SCALE_NAME),
 			tooltip = GetString(SI_COMBAT_METRICS_MENU_SCALE_TOOLTIP),
-			min = 30,
+			min = 50,
 			max = 300,
 			step = 10,
 			default = def.liveReport.scale,
@@ -487,7 +487,7 @@ function CMX.MakeMenu(svdefaults)
 		},
 	}
 
-	if GetDisplayName() == "@Solinur" then 
+	if GetDisplayName() == "@Solinur" then
 
 		options[#options+1] = {
 			type = "custom",
