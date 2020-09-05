@@ -1,6 +1,6 @@
 ﻿## Title: CombatMetricsFightData
-## APIVersion: 100030 100031
-## Author: Solinur/decay
+## APIVersion: 100031 100032
+## Author: Solinur
 ## AddOnVersion: 8
 ## Version: 8
 ## IsLibrary: true
@@ -13,4 +13,3 @@
 ## You can read the full terms at https://account.elderscrollsonline.com/add-on-terms
 
 CombatMetricsFightData.lua
-
