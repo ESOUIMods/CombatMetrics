@@ -1882,19 +1882,22 @@ local function updateFightStatsPanelRight(panel)
 		local dataKey = keys[5][1]
 
 		local sum = 0
+		local effectiveSum = 0
 		local totaldamage = 0
 		local maxvalue = stats["max"..dataKey] or 0
 		local overpen = 0
+		local maxpen = db.unitresistance
 
 		local trimmedResistvalues = {[18] = 0}
 
 		for penetration, damage in pairs(resistvalues) do
 
 			sum = sum + penetration * damage
+			effectiveSum = effectiveSum + math.min(penetration, maxpen) * damage
 			maxvalue = math.max(maxvalue, penetration)
 			totaldamage = totaldamage + damage
 
-			if penetration - db.unitresistance > 0 then overpen = overpen + damage end
+			if penetration - maxpen > 0 then overpen = overpen + damage end
 
 			local trimmedkey = math.floor((penetration+800)/1000)
 			trimmedResistvalues[trimmedkey] = (trimmedResistvalues[trimmedkey] or 0) + damage
@@ -1921,8 +1924,12 @@ local function updateFightStatsPanelRight(panel)
 
 		end
 
-		local averagePenetration = string.format("%d", math.max(zo_round(sum / totaldamage), avgvalues["avg"..dataKey] or 0))
+		local averagePenetration = string.format("%d", math.max(zo_round(effectiveSum / totaldamage), avgvalues["avg"..dataKey] or 0))
 		local overPenetrationRatio = string.format("%.1f%%", 100 * overpen / totaldamage)
+
+		local newline = string.format("%s: %d", GetString(SI_COMBAT_METRICS_AVERAGE), zo_round(sum / totaldamage))
+		table.insert(tooltiplines, " ")
+		table.insert(tooltiplines, newline)
 
 		row5:SetHidden(false)
 		row6:SetHidden(false)
