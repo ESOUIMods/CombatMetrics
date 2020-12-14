@@ -7,9 +7,6 @@ local stepsize = 20 	-- stepsize for chunks of the log.
 local chatContainer
 local chatWindow
 
-local lastUsedSkill
-local lastUsedWeaponAttack
-
 local currentbar
 local abilityDurations = {}
 
@@ -29,7 +26,7 @@ local CMX = CMX
 
 -- Basic values
 CMX.name = "CombatMetrics"
-CMX.version = "1.1.2"
+CMX.version = "1.2.1"
 
 -- Logger
 
@@ -88,47 +85,9 @@ if LC == nil then
 
 end
 
-function CMX.GetFeedBackData(parentcontrol)
-
-	local data = {
-
-		CMX,
-		CMX.name .. " " .. CMX.version,
-		parentcontrol,
-		"@Solinur",
-		{TOPLEFT, parentcontrol, TOPRIGHT, 10, 0},
-		{
-			{0, GetString(SI_COMBAT_METRICS_FEEDBACK_MAIL), false},
-			{5000, GetString(SI_COMBAT_METRICS_FEEDBACK_GOLD), true},
-			{25000, GetString(SI_COMBAT_METRICS_FEEDBACK_GOLD2), true},
-			{"https://www.esoui.com/downloads/info1360-CombatMetrics.html", GetString(SI_COMBAT_METRICS_FEEDBACK_ESOUI), false},
-			{"https://github.com/Solinur/CombatMetrics", GetString(SI_COMBAT_METRICS_FEEDBACK_GITHUB), false},
-		},
-		GetString(SI_COMBAT_METRICS_FEEDBACK_TEXT),
-		700,
-		245,
-		145
-	}
-
-	return data
-end
-
 local GetFormattedAbilityName = LC.GetFormattedAbilityName
 
 local GetFormattedAbilityIcon = LC.GetFormattedAbilityIcon
-
-local offstatlist= {
-	"maxmagicka",
-	"spellpower",
-	"spellcrit",
-	"spellcritbonus",
-	"spellpen",
-	"maxstamina",
-	"weaponpower",
-	"weaponcrit",
-	"weaponcritbonus",
-	"weaponpen",
-}
 
 local STATTYPE_NORMAL = 0
 local STATTYPE_CRITICAL = 1
@@ -229,7 +188,9 @@ local ChangingAbilities = { -- Skills which can change on their own
 
     [61902] = 61907,    -- Grim Focus --> Assasins Will
     [61919] = 61930,    -- Merciless Resolve --> Assasins Will
-    [61927] = 61932,    -- Relentless Focus --> Assasins Scourge
+	[61927] = 61932,    -- Relentless Focus --> Assasins Scourge
+	[117749] = 117773,   -- Stalking Blastbones (When greyed out)
+	[117690] = 117693,   -- Blighted Blastbones (When greyed out)
 
 }
 
@@ -505,16 +466,20 @@ function UnitHandler:Initialize()
 
 end
 
-function UnitHandler:UpdateResistance(ismagic, effectdata, value)
+function UnitHandler:UpdateResistance(fight, ismagic, effectdata, value)
 
 	local debuffName = effectdata.name
 	local debuffData = self.physResDebuffs
 	local valuekey = "currentPhysicalResistance"
+	local resistDataKey = "physicalResistance"
+	local statkey = "currentweaponpen"
 
 	if ismagic then
 
 		debuffData = self.spellResDebuffs
 		valuekey = "currentSpellResistance"
+		resistDataKey = "spellResistance"
+		statkey = "currentspellpen"
 
 	end
 
@@ -533,6 +498,9 @@ function UnitHandler:UpdateResistance(ismagic, effectdata, value)
 		debuffData[debuffName] = value
 
 		self[valuekey] = self[valuekey] + value
+
+		local fullvalue = (fight.calculated.stats[statkey] or 0) + self[valuekey]
+		self[resistDataKey][fullvalue] = 0
 
 	elseif isactive == false and debuffData[debuffName] then
 
@@ -716,9 +684,6 @@ local function GetEmtpyFightStats()
 		healingIn = {},
 	}
 
-	lastUsedSkill = nil
-	lastUsedWeaponAttack = nil
-
 	return data
 
 end
@@ -749,7 +714,6 @@ local function CalculateFight(fight) -- called by CMX.update or on user interact
 	fight.calculating = true
 
 	local titleBar = CombatMetrics_Report_TitleFightTitleBar
-	local titleBarBg = CombatMetrics_Report_TitleFightTitleBarBG
 
 	titleBar:SetValue(0)
 	titleBar:SetHidden(false)
@@ -819,14 +783,14 @@ local function AccumulateStats(fight)
 
 				if tablekey == "damageOut" then
 
-					ability.damageOutTotal = ability.damageOutNormal + ability.damageOutCritical + ability.damageOutShielded + ability.damageOutBlocked
-					ability.hitsOutTotal = ability.hitsOutNormal + ability.hitsOutCritical + ability.hitsOutShielded + ability.hitsOutBlocked
+					ability.damageOutTotal = ability.damageOutNormal + ability.damageOutCritical + ability.damageOutBlocked
+					ability.hitsOutTotal = ability.hitsOutNormal + ability.hitsOutCritical + ability.hitsOutBlocked
 					ability.DPSOut = ability.damageOutTotal / fight.dpstime
 
 				elseif tablekey == "damageIn" then
 
-					ability.damageInTotal = ability.damageInNormal + ability.damageInCritical + ability.damageInShielded + ability.damageInBlocked
-					ability.hitsInTotal = ability.hitsInNormal + ability.hitsInCritical + ability.hitsInShielded + ability.hitsInBlocked
+					ability.damageInTotal = ability.damageInNormal + ability.damageInCritical + ability.damageInBlocked
+					ability.hitsInTotal = ability.hitsInNormal + ability.hitsInCritical + ability.hitsInBlocked
 					ability.DPSIn = ability.damageInTotal / fight.dpstime
 
 				elseif tablekey == "healingOut" then
@@ -1064,22 +1028,22 @@ local function IncrementStatSum(fight, damageType, resultkey, isDamageOut, hitVa
 
 	local values
 
-	if isheal == true  and isDamageOut == true then
+	if isheal == true and isDamageOut == true then
 
 		values = stats.healavg
 		barStats.healingOut = barStats.healingOut + hitValue
 
-	elseif 	isheal == true and isDamageOut == false then
+	elseif isheal == true and isDamageOut == false then
 
 		barStats.healingIn = barStats.healingIn + hitValue
 		return
 
-	elseif 	isheal == false and isDamageOut == true then
+	elseif isheal == false and isDamageOut == true then
 
 		values = stats.dmgavg
 		barStats.damageOut = barStats.damageOut + hitValue
 
-	elseif 	isheal == false and isDamageOut == false then
+	elseif isheal == false and isDamageOut == false then
 
 		values = stats.dmginavg
 		barStats.damageIn = barStats.damageIn + hitValue
@@ -1143,7 +1107,7 @@ end
 
 local function ProcessLogDamage(fight, logline)
 
-	local callbacktype, timems, result, sourceUnitId, targetUnitId, abilityId, hitValue, damageType = unpackLogline(logline, 1, 9)
+	local callbacktype, timems, result, sourceUnitId, targetUnitId, abilityId, hitValue, damageType, overflow = unpackLogline(logline, 1, 9)
 
 	if timems < (fight.combatstart-500) or fight.units[sourceUnitId] == nil or fight.units[targetUnitId] == nil then return end
 
@@ -1159,6 +1123,8 @@ local function ProcessLogDamage(fight, logline)
 	local hitkey
 	local graphkey
 
+	hitValue = hitValue + overflow
+
 	if callbacktype == LIBCOMBAT_EVENT_DAMAGE_OUT then
 
 		unit = fight:AcquireUnitData(targetUnitId, timems)
@@ -1169,6 +1135,18 @@ local function ProcessLogDamage(fight, logline)
 		hitkey = ZO_CachedStrFormat("hitsOut<<1>>", resultkey)
 		graphkey = "damageOut"
 
+		if overflow > 0 then -- shielded damage
+
+			local shieldResult = damageResultCategory[ACTION_RESULT_DAMAGE_SHIELDED]
+
+			local shieldkey = ZO_CachedStrFormat("damageOut<<1>>", shieldResult)
+			abilitydata[shieldkey] = abilitydata[shieldkey] + overflow
+
+			local shieldhitkey = ZO_CachedStrFormat("hitsOut<<1>>", shieldResult)
+			abilitydata[shieldhitkey] = abilitydata[shieldhitkey] + 1
+
+		end
+
 	else																												-- incoming and self inflicted Damage are consolidated.
 
 		abilitydata = fight:AcquireUnitData(sourceUnitId, timems):AcquireAbilityData(abilityId, ispet, damageType, "damageIn")
@@ -1177,6 +1155,18 @@ local function ProcessLogDamage(fight, logline)
 		dmgkey = ZO_CachedStrFormat("damageIn<<1>>", resultkey)	-- determine categories. For normal incoming damage: dmgkey = "damageNormal", for critical outgoing damage: dmgkey = "damageCritical" ...
 		hitkey = ZO_CachedStrFormat("hitsIn<<1>>", resultkey)
 		graphkey = "damageIn"
+
+		if overflow > 0 then -- shielded damage
+
+			local shieldResult = damageResultCategory[ACTION_RESULT_DAMAGE_SHIELDED]
+
+			local shieldkey = ZO_CachedStrFormat("damageIn<<1>>", shieldResult)
+			abilitydata[shieldkey] = abilitydata[shieldkey] + overflow
+
+			local shieldhitkey = ZO_CachedStrFormat("hitsIn<<1>>", shieldResult)
+			abilitydata[shieldhitkey] = abilitydata[shieldhitkey] + 1
+
+		end
 
 	end
 
@@ -1209,11 +1199,14 @@ local healResultCategory={
 	[ACTION_RESULT_HOT_TICK] = "Normal",
 	[ACTION_RESULT_CRITICAL_HEAL] = "Critical",
 	[ACTION_RESULT_HOT_TICK_CRITICAL] = "Critical",
+	[ACTION_RESULT_DAMAGE_SHIELDED] = "Normal",
 }
 
-local function ProcessLogHeal(fight, logline)
+local function ProcessLogHeal(fight, logline, overrideCallbackType)
 
 	local callbacktype, timems, result, sourceUnitId, targetUnitId, abilityId, hitValue, powerType, overflow = unpackLogline(logline, 1, 9)
+
+	callbacktype = overrideCallbackType or callbacktype
 
 	if timems < (fight.combatstart-500) or fight.units[sourceUnitId] == nil or fight.units[targetUnitId] == nil then return end
 
@@ -1278,11 +1271,8 @@ ProcessLog[LIBCOMBAT_EVENT_HEAL_IN] = ProcessLogHeal
 
 local function ProcessLogHealSelf (fight, logline)
 
-	logline[1] = LIBCOMBAT_EVENT_HEAL_OUT
-	ProcessLogHeal(fight, logline)
-
-	logline[1] = LIBCOMBAT_EVENT_HEAL_IN
-	ProcessLogHeal(fight, logline)
+	ProcessLogHeal(fight, logline, LIBCOMBAT_EVENT_HEAL_OUT)
+	ProcessLogHeal(fight, logline, LIBCOMBAT_EVENT_HEAL_IN)
 
 end
 
@@ -1405,21 +1395,21 @@ local function ProcessLogEffects(fight, logline)
 
 	if abilityId == 75753 then
 
-		unit:UpdateResistance(true, effectdata, hitValue)
-		unit:UpdateResistance(false, effectdata, hitValue)
+		unit:UpdateResistance(fight, true, effectdata, hitValue)
+		unit:UpdateResistance(fight, false, effectdata, hitValue)
 
 
 	end
 
 	if spellres then
 
-		unit:UpdateResistance(true, effectdata, spellres)
+		unit:UpdateResistance(fight, true, effectdata, spellres)
 
 	end
 
 	if physres then
 
-		unit:UpdateResistance(false, effectdata, physres)
+		unit:UpdateResistance(fight, false, effectdata, physres)
 
 	end
 end
@@ -1516,7 +1506,7 @@ local function ProcessLogSkillTimings(fight, logline)
 
 		if lastRegisteredIndex == nil then
 
-			Print("calc", LOG_LEVEL_WARNING, "Missing registered ability on queue event: [%.3f s] %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
+			-- Print("calc", LOG_LEVEL_WARNING, "Missing registered ability on queue event: [%.3f s] %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
 			return
 
 		end
