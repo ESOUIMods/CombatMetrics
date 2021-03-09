@@ -117,7 +117,7 @@
 	SI_COMBAT_METRICS_POSTBUFF = "Post buff uptime",
 	SI_COMBAT_METRICS_POSTBUFF_BOSS = "Post buff uptime on bosses",
 	SI_COMBAT_METRICS_POSTBUFF_GROUP = "Post buff uptime on group members",
-	SI_COMBAT_METRICS_POSTBUFF_FORMAT = "<<1>> - HPS: <<2>> (<<3>><<4[/ on $d/ on $d units]>>)", -- (<<1>> = buff name, <<2>> = relative uptime, <<3>> = uptime, <<4>> = time) e.g. Major Intellect - Uptime: 93.2% (9:26 in 10:07)
+	SI_COMBAT_METRICS_POSTBUFF_FORMAT = "<<1>> - Uptime: <<2>> (<<3>><<4[/ on $d/ on $d units]>>)", -- (<<1>> = buff name, <<2>> = relative uptime, <<3>> = uptime, <<4>> = time) e.g. Major Intellect - Uptime: 93.2% (9:26 in 10:07)
 	SI_COMBAT_METRICS_POSTBUFF_FORMAT_GROUP = "<<1>> - Uptime: <<2>>/<<5>> (<<3>>/<<6>><<4[/ on $d/ on $d units]>>)", -- (<<1>> = buff name, <<2>> = relative uptime, <<3>> = uptime, <<4>> = units, <<5>> = relative group uptime, <<6>> = group uptime) e.g. Minor Sorcery - Uptime: 55.4%/100.6% (5:36/10:11 in 10:07)
 
 	SI_COMBAT_METRICS_SETTINGS = "Addon Settings",
@@ -158,9 +158,9 @@
 	SI_COMBAT_METRICS_DONATE_CROWNS_TEXT = "If you wish to gift something from the crown store, I'd be happy to receive some crown crates or consumable items. \nYou can also contact me if you wish to gift something else.",
 	SI_COMBAT_METRICS_DONATE_CROWNS_ACCOUNT = "My account:",
 	SI_COMBAT_METRICS_DONATE_ESOUI = "Donation Page",
-	
+
 	SI_COMBAT_METRICS_OK = "OK",
-	
+
 	SI_COMBAT_METRICS_STORAGE_FULL = "The storage file is full. The fight you want to save needs <<1>> MB. Delete a fight to free some space or increase the allowed space in the settings!",
 
 	-- Fight Control Button Tooltips

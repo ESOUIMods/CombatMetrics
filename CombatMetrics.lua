@@ -26,7 +26,7 @@ local CMX = CMX
 
 -- Basic values
 CMX.name = "CombatMetrics"
-CMX.version = "1.2.5"
+CMX.version = "1.2.6"
 
 -- Logger
 
@@ -154,7 +154,7 @@ local SpellResistDebuffs = {
 	[GetFormattedAbilityName(17906)] = 2108, -- Crusher, can get changed by settings !
 
 	[GetFormattedAbilityName(143808)] = 1000, -- Crystal Weapon
-
+	
 	--[GetFormattedAbilityName(75753)] = 3010, -- Alkosh, now special tracking
 
 }
@@ -184,14 +184,14 @@ local ignoredAbilityTiming = { -- Skills which ignore global cooldown
 
 }
 
-local ChangingAbilities = { -- Skills which can change on their own
+local ChangingAbilities = { -- Skills which can change un use
 
     [61902] = 61907,    -- Grim Focus --> Assasins Will
     [61919] = 61930,    -- Merciless Resolve --> Assasins Will
 	[61927] = 61932,    -- Relentless Focus --> Assasins Scourge
-	[117749] = 117773,   -- Stalking Blastbones (When greyed out)
-	[117690] = 117693,   -- Blighted Blastbones (When greyed out)
-
+	[117749] = 117773,  -- Stalking Blastbones (When greyed out)
+	[117690] = 117693,  -- Blighted Blastbones (When greyed out)
+	[46324] = 114716,  	-- Crystal Fragments Proc
 }
 
 local abilityDelay = {	-- Radiant Destruction and morphs have a 100ms delay after casting. 50ms for Jabs
@@ -903,7 +903,7 @@ function CMX.GenerateSelectionStats(fight, menuItem, selections) -- this is simi
 
 		local unitData = fight.units[unitId]
 
-		local isNotEmpty = unitTotalValue > 0 or NonContiguousCount(unit.buffs) > 0
+		local isNotEmpty = unitTotalValue > 0 or (unit and NonContiguousCount(unit.buffs) > 0)
 		local isEnemy = unitData and (unitData.unitType ~= COMBAT_UNIT_TYPE_GROUP and unitData.unitType ~= COMBAT_UNIT_TYPE_PLAYER_PET and unitData.unitType ~= COMBAT_UNIT_TYPE_PLAYER)
 		local isDamageCategory = menuItem == "damageIn" or menuItem == "damageOut"
 
@@ -972,15 +972,15 @@ function CMX.GenerateSelectionStats(fight, menuItem, selections) -- this is simi
 
 				selectedbuff.effectType = buff.effectType
 
-				if data.buffVersion == nil then
-
-					selectedbuff.icon = buff.icon
-
+				if data.buffVersion == nil then 
+					
+					selectedbuff.icon = buff.icon 
+				
 				elseif data.buffVersion >= 2 then
 
 					selectedbuff.iconId = data.buffVersion and (selectedbuff.iconId or buff.iconId) or buff.icon
-
-				end
+				
+				end				
 
 				selectiondata.buffs[name] = selectedbuff
 			end
@@ -1490,7 +1490,7 @@ end
 ---[[
 local function ProcessLogSkillTimings(fight, logline)
 
-	local callbacktype, timems, reducedslot, abilityId, status, skillDelay = unpackLogline(logline, 1, 6)
+	local _, timems, reducedslot, abilityId, status = unpackLogline(logline, 1, 6)
 
 	local skill = fight:AcquireSkillCastData(reducedslot)
 
@@ -1498,6 +1498,8 @@ local function ProcessLogSkillTimings(fight, logline)
 	local indexData = fight.calculated.lastIndex
 	local lastRegisteredIndex = indexData[abilityId]
 	local started = skill.started
+
+	-- Print("calc", LOG_LEVEL_INFO, "[%.3f s] Skill Event: %s (%d), Status: %d, Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, status, reducedslot)
 
 	if status == LIBCOMBAT_SKILLSTATUS_REGISTERED then
 
@@ -1527,7 +1529,7 @@ local function ProcessLogSkillTimings(fight, logline)
 
 		if lastRegisteredIndex == nil then
 
-			Print("calc", LOG_LEVEL_WARNING, "Missing registered ability on start event: [%.3f s] %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
+			Print("calc", LOG_LEVEL_WARNING, "[%.3f s] Missing registered ability on instant event: %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
 			return
 
 		else
@@ -1544,9 +1546,11 @@ local function ProcessLogSkillTimings(fight, logline)
 
 	elseif status == LIBCOMBAT_SKILLSTATUS_BEGIN_DURATION or status == LIBCOMBAT_SKILLSTATUS_BEGIN_CHANNEL then
 
+		lastRegisteredIndex = lastRegisteredIndex or indexData[ChangingAbilities[abilityId]]
+
 		if lastRegisteredIndex == nil then
 
-			Print("calc", LOG_LEVEL_WARNING, "Missing registered ability on start event: [%.3f s] %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
+			Print("calc", LOG_LEVEL_WARNING, "[%.3f s] Missing registered ability on start event: %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
 			return
 
 		else
@@ -1584,12 +1588,12 @@ local function ProcessLogSkillTimings(fight, logline)
 
 		if not indexFound then
 
-			Print("calc", LOG_LEVEL_WARNING, "Missing started ability on success event: [%.3f s] %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
+			Print("calc", LOG_LEVEL_WARNING, "[%.3f s] Missing started ability on success event: %s (%d), Slot: %d", (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
 			return
 
 		elseif indexFound > 3 then
 
-			Print("calc", LOG_LEVEL_WARNING, "Large number of unfinished skills (%d): [%.3f s] %s (%d), Slot: %d", indexFound, (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
+			Print("calc", LOG_LEVEL_WARNING, "[%.3f s] Large number of unfinished skills (%d): %s (%d), Slot: %d", indexFound, (timems - fight.combatstart)/1000, GetFormattedAbilityName(abilityId), abilityId, reducedslot)
 
 		end
 	end
@@ -1955,7 +1959,7 @@ local function CalculateChunk(fight)  -- called by CalculateFight or itself
 			local skill = skillData[reducedslot]
 
 			if startTime then
-
+				
 				endTime = endTime or (startTime + 1000)
 
 				local isWeaponAttack = reducedslot%10 == 1 or reducedslot%10 == 2
@@ -2013,9 +2017,10 @@ local function CalculateChunk(fight)  -- called by CalculateFight or itself
 			local isWeaponAttack = reducedslot%10 == 1 or reducedslot%10 == 2
 			local timedata = skill.times
 			local bar = mathfloor(reducedslot/10) + 1
+
 			local skillId = skillBars[bar][reducedslot%10]
 
-			if bar <= 2 and skillId then
+			if skillId then
 
 				local count = #timedata
 
@@ -2505,12 +2510,14 @@ local svdefaults = {
 		["rightpanel"] 			= "buffs",
 		["fightstatspanel"] 	= maxStat(),
 
-		["useDisplayNames"] = false,
-		["showPets"] = true,
+		["useDisplayNames"] 	= false,
+		["showPets"] 			= true,
 
 		["SmoothWindow"] 		= 5,
 
 		["Cursor"]				= true,
+				
+		["showWereWolf"] 		= false,
 
 		["PlotColors"]				= {
 
@@ -2563,7 +2570,7 @@ local svdefaults = {
 			damageIn = true,
 			healingOut = true,
 			healingIn = true,
-		}
+		},
 	},
 
 	["liveReport"] = {
