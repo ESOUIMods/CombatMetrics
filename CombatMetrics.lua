@@ -26,7 +26,7 @@ local CMX = CMX
 
 -- Basic values
 CMX.name = "CombatMetrics"
-CMX.version = "1.3.1"
+CMX.version = "1.3.2"
 
 -- Logger
 
@@ -1895,7 +1895,7 @@ local function CalculateChunk(fight)  -- called by CalculateFight or itself
 		end
 
 		if data.damageOutSpells.min == infinity then data.damageOutSpells.min = 0 end
-		if data.damageOutWeapon.min == infinity then data.damageOutWeapon.min = 0 end		
+		if data.damageOutWeapon.min == infinity then data.damageOutWeapon.min = 0 end
 
 		local damageIn = data.damageIn
 
@@ -1957,7 +1957,7 @@ local function CalculateChunk(fight)  -- called by CalculateFight or itself
 		end
 
 		for statId, stattype in pairs(IncomingStatList) do
-			
+
 			local statdata = stats[statId]
 
 			local value = statdata.max
