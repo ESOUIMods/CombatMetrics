@@ -158,9 +158,9 @@
 	SI_COMBAT_METRICS_DONATE_CROWNS_TEXT = "If you wish to gift something from the crown store, I'd be happy to receive some crown crates or consumable items. \nYou can also contact me if you wish to gift something else.",
 	SI_COMBAT_METRICS_DONATE_CROWNS_ACCOUNT = "My account:",
 	SI_COMBAT_METRICS_DONATE_ESOUI = "Donation Page",
-
+	
 	SI_COMBAT_METRICS_OK = "OK",
-
+	
 	SI_COMBAT_METRICS_STORAGE_FULL = "The storage file is full. The fight you want to save needs <<1>> MB. Delete a fight to free some space or increase the allowed space in the settings!",
 
 	-- Fight Control Button Tooltips
@@ -254,6 +254,7 @@
 	SI_COMBAT_METRICS_PERFORMANCE_DESYNC = "Skill Desync",
 
 	SI_COMBAT_METRICS_PENETRATION_TT = "Penetration vs. Damage",
+	SI_COMBAT_METRICS_BACKSTABBER_TT = "Backstabber is included as if all targets were always flanked",
 
 	SI_COMBAT_METRICS_COMBAT_LOG = "Combat Log",
 

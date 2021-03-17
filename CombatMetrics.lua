@@ -26,7 +26,7 @@ local CMX = CMX
 
 -- Basic values
 CMX.name = "CombatMetrics"
-CMX.version = "1.3.2"
+CMX.version = "1.3.4"
 
 -- Logger
 
@@ -282,6 +282,7 @@ local function AcquireUnitData(self, unitId, timems)
 		units[unitId] = unit
 
 		unit.starttime = timems
+		unit.unitId = unitId
 
 	end
 
@@ -521,9 +522,6 @@ function UnitHandler:UpdateResistance(fight, ismagic, effectdata, value)
 		debuffData[debuffName] = value
 
 		self[valuekey] = self[valuekey] + value
-
-		local fullvalue = (fight.calculated.temp.stats[statkey] or 0) + self[valuekey]
-		self[resistDataKey][fullvalue] = 0
 
 	elseif isactive == false and debuffData[debuffName] then
 
@@ -1615,7 +1613,7 @@ local function ProcessLogSkillTimings(fight, logline)
 
 			if timeDiff < (GetAbilityDuration(abilityId) + 250) then
 
-				castData[castindex][5] = timems
+				castData[castindex][5] = math.max(timems, starttime + 1000)
 				indexFound = k
 
 				table.remove(started, k)
